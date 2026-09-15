@@ -14,7 +14,7 @@ summary: |
 
 
 # Medias associated to the plugin (optional)
-iconPath: logo.jpg
+# iconPath: logo.jpg
 # bannerPath: foo/banner.png
 
 # Configuration data for your plugin.
