@@ -1,11 +1,13 @@
-# swagger-ring traefik plugin ![Swagger ring](logo.jpg "Swagger ring")
+# traefik-swagger-merge
 
 A Middleware plugin for Traefik allow merge multiply swagger doc endpoints to a single one.
 Perhaps you'll find it usable for multiply microservices which served to one traefik balancer.
 
+This is currently used for merging Swagger docs on the LocalAPI and Customer Middleware services.
+
 ## Use case
 
-swagger-ring-config.yaml
+docs.yaml
 
 ```yaml
 http:
@@ -25,31 +27,18 @@ http:
   middlewares:
     swagger:
       plugin:
-        swagger-ring:
+        swagger-merge:
           path: /api/v1/docs
           docs:
             - path: http://service1:3000/swagger.yaml
             - path: http://service2:3000/swagger.yaml
 ```
 
-docker-compose.yaml
+traefik.yaml
 
 ```yaml
-services:
-  traefik:
-    image: traefik:latest
-    restart: unless-stopped
-    command:
-      # configuration folder
-      - --providers.file.directory=/config
-      - --providers.file.watch=true
-      # plugin
-      - --experimental.plugins.swagger-ring.modulename=github.com/usalko/swagger-ring
-      - --experimental.plugins.swagger-ring.version=v0.1.10
-    volumes:
-      - ./swagger-ring-config.yaml:/config/swagger-ring-config.yaml
-
-  whoami:
-    restart: unless-stopped
-    image: traefik/whoami
+experimental:
+  localPlugins:
+    swagger-merge:
+      moduleName: "github.com/vocovo/traefik-swagger-merge"
 ```
