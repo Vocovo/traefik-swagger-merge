@@ -14,7 +14,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/usalko/swagger-ring/docs"
+	"github.com/Vocovo/traefik-swagger-merge/docs"
 	"gopkg.in/yaml.v3"
 )
 
