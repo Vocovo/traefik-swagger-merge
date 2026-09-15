@@ -5,6 +5,8 @@ Perhaps you'll find it usable for multiply microservices which served to one tra
 
 This is currently used for merging Swagger docs on the LocalAPI and Customer Middleware services.
 
+This is based on a fork of https://github.com/usalko/swagger-ring/tree/v0.1.9
+
 ## Use case
 
 docs.yaml
