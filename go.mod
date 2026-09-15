@@ -1,4 +1,4 @@
-module github.com/usalko/swagger-ring
+module github.com/Vocovo/traefik-swagger-merge
 
 go 1.24.1
 

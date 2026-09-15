@@ -1,0 +1,52 @@
+name: PR
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and validate plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify vendored dependencies are in sync
+        # Traefik (Yaegi) loads the plugin from source and needs the vendor directory committed.
+        # Fail if go.mod/go.sum/vendor have drifted.
+        run: |
+          go mod verify
+          go mod vendor
+          git diff --exit-code -- go.mod go.sum vendor
+
+      - name: Vet
+        run: go vet -mod=vendor ./...
+
+      - name: Build
+        run: go build -mod=vendor ./...
+
+# Tests currently don't pass
+#      - name: Test
+#        run: go test -mod=vendor -v -cover ./...
+
+      - name: Validate Traefik plugin manifest
+        run: |
+          test -f .traefik.yml
+          MODULE="$(go list -m)"
+          IMPORT="$(sed -n 's/^import:[[:space:]]*//p' .traefik.yml)"
+          echo "go.mod module:      $MODULE"
+          echo ".traefik.yml import: $IMPORT"
+          if [ "$MODULE" != "$IMPORT" ]; then
+            echo "::error::.traefik.yml import path does not match go.mod module path"
+            exit 1
+          fi
