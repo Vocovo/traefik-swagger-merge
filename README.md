@@ -42,5 +42,5 @@ traefik.yaml
 experimental:
   localPlugins:
     swagger-merge:
-      moduleName: "github.com/vocovo/traefik-swagger-merge"
+      moduleName: "github.com/Vocovo/traefik-swagger-merge"
 ```

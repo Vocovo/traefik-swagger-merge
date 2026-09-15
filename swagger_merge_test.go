@@ -1,4 +1,4 @@
-package swagger_ring_test
+package traefik_swagger_merge_test
 
 import (
 	"context"
