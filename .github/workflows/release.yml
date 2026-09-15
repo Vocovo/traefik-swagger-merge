@@ -1,18 +1,23 @@
-name: Build and release
+name: Release
 
 on:
-  pull_request:
   release:
     types: [published]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
-    name: Build and package plugin
+    name: Build
+    uses: ./.github/workflows/pr.yml
+    permissions:
+      contents: read
+
+  package:
+    name: Package and publish plugin
+    needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -23,41 +28,10 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Verify vendored dependencies are in sync
-        # Traefik (Yaegi) loads the plugin from source and needs the vendor directory committed.
-        # Fail if go.mod/go.sum/vendor have drifted.
-        run: |
-          go mod verify
-          go mod vendor
-          git diff --exit-code -- go.mod go.sum vendor
-
-      - name: Vet
-        run: go vet -mod=vendor ./...
-
-      - name: Build
-        run: go build -mod=vendor ./...
-
-# Tests currently don't pass
-#      - name: Test
-#        run: go test -mod=vendor -v -cover ./...
-
-      - name: Validate Traefik plugin manifest
-        run: |
-          test -f .traefik.yml
-          MODULE="$(go list -m)"
-          IMPORT="$(sed -n 's/^import:[[:space:]]*//p' .traefik.yml)"
-          echo "go.mod module:      $MODULE"
-          echo ".traefik.yml import: $IMPORT"
-          if [ "$MODULE" != "$IMPORT" ]; then
-            echo "::error::.traefik.yml import path does not match go.mod module path"
-            exit 1
-          fi
-
       - name: Package plugin source
         # Archive laid out for Traefik's local plugin directory, so it can be extracted straight into /plugins-local
         # on the Traefik host: plugins-local/src/<module path>/...
         id: package
-        if: github.event_name != 'pull_request'
         run: |
           MODULE="$(go list -m)"
           TAG="${GITHUB_REF_NAME}"
@@ -69,7 +43,6 @@ jobs:
           echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
-        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v6.0.0
         with:
           name: ${{ steps.package.outputs.archive }}
