@@ -1,6 +1,7 @@
-name: Release
+name: Build and release
 
 on:
+  pull_request:
   release:
     types: [published]
   workflow_dispatch:
@@ -10,7 +11,7 @@ permissions:
 
 jobs:
   build:
-    name: Build, test and package plugin
+    name: Build and package plugin
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -56,6 +57,7 @@ jobs:
         # Archive laid out for Traefik's local plugin directory, so it can be extracted straight into /plugins-local
         # on the Traefik host: plugins-local/src/<module path>/...
         id: package
+        if: github.event_name != 'pull_request'
         run: |
           MODULE="$(go list -m)"
           TAG="${GITHUB_REF_NAME}"
@@ -67,6 +69,7 @@ jobs:
           echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v6.0.0
         with:
           name: ${{ steps.package.outputs.archive }}
